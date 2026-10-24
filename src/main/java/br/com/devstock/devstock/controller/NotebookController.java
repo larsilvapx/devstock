@@ -34,4 +34,10 @@
         public Notebook buscarPorId(@PathVariable Long id) {
             return notebookService.buscarPorId(id);
         }
+
+        @PutMapping("/{id}")
+        public Notebook atualizar(@PathVariable Long id,
+                                  @RequestBody Notebook notebook){
+            return notebookService.atualizar(id, notebook);
+        }
     }

@@ -39,8 +39,19 @@ public class Notebook {
     @Column(name = "status", nullable = false)
     private String status;
 
-    @Column(name = "data_aquisicao")
+    @Column(name = "dataUltimaComunicacao")
     private LocalDate dataUltimaComunicacao;
+
+    @Column(name = "dataAquisicao")
+    private LocalDate dataAquisicao;
+
+    public LocalDate getDataAquisicao() {
+        return dataAquisicao;
+    }
+
+    public void setDataAquisicao(LocalDate dataAquisicao) {
+        this.dataAquisicao = dataAquisicao;
+    }
 
     public Notebook(){
 
