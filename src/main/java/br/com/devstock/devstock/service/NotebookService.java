@@ -3,6 +3,7 @@ package br.com.devstock.devstock.service;
 
 import br.com.devstock.devstock.entity.Notebook;
 import br.com.devstock.devstock.exception.ConflitoCadastroException;
+import br.com.devstock.devstock.exception.RecursoNaoEncontradoException;
 import br.com.devstock.devstock.repository.NotebookRepository;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +34,10 @@ public class NotebookService {
     public Notebook buscarPorId(Long id) {
         return notebookRepository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Notebook não encontrado: " + id));
+                        new RecursoNaoEncontradoException(
+                                "Notebook não encontrado com ID: " + id
+                        )
+                );
     }
 
     public Notebook atualizar(Long id, Notebook notebookAtualizado) {
@@ -67,5 +71,14 @@ public class NotebookService {
                 (notebookAtualizado.getDataUltimaComunicacao()));
 
         return notebookRepository.save(notebookExistente);
+    }
+
+    public void excluir(Long id){
+
+        // Verifica se o notebook existe
+        Notebook notebook = buscarPorId(id);
+
+        // Deleta o notebook encontrado
+        notebookRepository.delete(notebook);
     }
 }
