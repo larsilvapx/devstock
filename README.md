@@ -1,85 +1,141 @@
-# DevStock — Gestão de Ativos de TI
+# DevStock — API de Gestão de Ativos de TI
 
-Sistema backend para gerenciamento de notebooks corporativos e kits de onboarding, com foco no controle de estoque, movimentação de equipamentos e acompanhamento das entregas aos desenvolvedores.
+API REST desenvolvida com Java e Spring Boot para gerenciar ativos de TI e apoiar o processo de onboarding de desenvolvedores.
 
-O projeto está sendo desenvolvido como aplicação prática de backend, aplicando conceitos de Java, Spring Boot, persistência de dados e regras de negócio inspiradas em um cenário real de TI.
+O projeto tem como objetivo aplicar conceitos de desenvolvimento backend em um cenário próximo ao ambiente corporativo, incluindo persistência de dados, organização em camadas, regras de negócio e tratamento de erros.
 
-## Objetivos
+## Objetivo do projeto
 
-- Controlar notebooks disponíveis, em preparação, em uso e obsoletos.
-- Organizar kits de equipamentos para novos colaboradores.
-- Registrar entregas e devoluções de equipamentos.
-- Manter o histórico de movimentações dos notebooks.
-- Identificar equipamentos sem comunicação há mais de 45 dias.
-- Registrar pendências e observações relacionadas às devoluções.
+Facilitar o controle de notebooks e equipamentos disponibilizados aos desenvolvedores, preparando a aplicação para gerenciar kits de equipamentos, entregas, devoluções e histórico de movimentações.
 
-## Tecnologias
+## Tecnologias utilizadas
 
-- Java 21
+- Java
 - Spring Boot
-- Spring Web
 - Spring Data JPA
 - PostgreSQL
 - Maven
-- Bean Validation
+- Git e GitHub
 
-## Arquitetura planejada
+> Consulte o `pom.xml` para verificar as versões exatas das dependências utilizadas no projeto.
 
-A aplicação seguirá uma estrutura em camadas para separar as responsabilidades:
+## Funcionalidades implementadas
 
-- **Controller:** recebe e responde às requisições HTTP.
-- **Service:** concentra as regras de negócio.
-- **Repository:** realiza o acesso aos dados.
-- **Entity:** representa as entidades persistidas no banco de dados.
+### Gerenciamento de notebooks
 
-## Modelo de domínio
+- Listagem de notebooks cadastrados.
+- Consulta de notebook por identificador.
+- Cadastro de notebooks.
+- Atualização de informações.
+- Exclusão de notebooks, respeitando as restrições de integridade do banco de dados.
+- Verificação de duplicidade do número de série.
+- Tratamento de conflitos de dados.
 
-O banco de dados inicial contempla as seguintes tabelas:
+O projeto está em desenvolvimento incremental. As funcionalidades descritas nesta seção devem corresponder ao código e aos testes disponíveis na versão publicada.
 
-- `desenvolvedor`
-- `notebook`
-- `kit`
-- `kit_item`
-- `onboarding`
-- `movimentacao`
+## Arquitetura
 
-## Regras de negócio previstas
+A aplicação utiliza uma organização em camadas para separar as responsabilidades:
 
-- O número de série de cada notebook deve ser único.
-- Equipamentos em uso não podem ser entregues novamente sem regularização.
-- Notebooks obsoletos não podem ser destinados a novos colaboradores.
-- Equipamentos sem comunicação há mais de 45 dias devem gerar um alerta operacional.
-- Entregas e devoluções devem manter um histórico de movimentações.
-- Devoluções parciais ou com itens danificados devem permitir o registro de pendências.
+| Camada | Responsabilidade |
+|---|---|
+| Controller | Receber requisições HTTP e retornar respostas da API. |
+| Service | Centralizar as regras de negócio. |
+| Repository | Realizar operações de persistência por meio do Spring Data JPA. |
+| Entity | Representar as entidades persistidas no banco de dados. |
+| Exception | Organizar exceções específicas e o tratamento de erros. |
 
-## Status do projeto
+Essa separação facilita a manutenção, a evolução das funcionalidades e a realização de testes.
+
+## Banco de dados
+
+O PostgreSQL é utilizado para armazenar as informações da aplicação.
+
+O modelo de dados foi planejado para contemplar entidades relacionadas à gestão de ativos de TI, incluindo:
+
+- Desenvolvedores.
+- Notebooks.
+- Kits e itens de equipamentos.
+- Registros de onboarding.
+- Movimentações de ativos.
+
+A implementação dessas entidades e seus relacionamentos ocorre de forma incremental.
+
+## Endpoints
+
+Os endpoints de notebooks estão organizados sob o prefixo `/api/notebooks`.
+
+| Método HTTP | Endpoint | Operação |
+|---|---|---|
+| GET | `/api/notebooks` | Listar notebooks |
+| GET | `/api/notebooks/{id}` | Consultar notebook por ID |
+| POST | `/api/notebooks` | Cadastrar notebook |
+| PUT | `/api/notebooks/{id}` | Atualizar notebook |
+| DELETE | `/api/notebooks/{id}` | Excluir notebook |
+
+Os códigos HTTP e os formatos de resposta devem ser conferidos conforme a implementação atual da API.
+
+## Configuração do ambiente
+
+### Pré-requisitos
+
+- JDK compatível com a versão configurada no projeto.
+- PostgreSQL.
+- Git.
+
+O Maven Wrapper está incluído no repositório para facilitar a execução dos comandos Maven.
+
+### Configuração do banco de dados
+
+Crie o banco de dados `devstock` no PostgreSQL e configure as variáveis de ambiente utilizadas pela aplicação:
+
+- `DB_URL`: endereço de conexão com o banco.
+- `DB_USERNAME`: usuário do banco.
+- `DB_PASSWORD`: senha do banco.
+
+A aplicação utiliza o Hibernate para validar o mapeamento das entidades em relação à estrutura existente no banco de dados.
+
+**Importante:** a configuração atual utiliza `ddl-auto=validate`. Portanto, é necessário que as tabelas e colunas esperadas já existam e sejam compatíveis com as entidades Java.
+
+Nunca publique senhas ou credenciais reais no repositório.
+
+### Executando a aplicação no Windows
+
+No terminal, acesse a pasta raiz do projeto e execute:
+
+```powershell
+.\mvnw.cmd clean compile
+```
+
+Se a compilação terminar com sucesso, inicie a aplicação:
+
+```powershell
+.\mvnw.cmd spring-boot:run
+```
+
+A execução depende de o PostgreSQL estar acessível e de as variáveis de ambiente estarem configuradas corretamente.
+
+## Próximas etapas
+
+- [ ] Finalizar a documentação dos endpoints e exemplos de requisições.
+- [ ] Revisar e ampliar o tratamento de erros.
+- [ ] Criar testes automatizados.
+- [ ] Implementar o gerenciamento de kits e itens.
+- [ ] Implementar o fluxo de onboarding.
+- [ ] Registrar o histórico de movimentações dos equipamentos.
+- [ ] Avaliar a utilização de DTOs e validação de entrada.
+- [ ] Documentar a API com OpenAPI/Swagger.
+- [ ] Preparar a execução com Docker.
+
+## Status
 
 **Em desenvolvimento.**
 
-Etapas iniciais concluídas:
-- Criação do banco de dados PostgreSQL.
-- Criação das tabelas iniciais.
-- Geração do projeto Spring Boot.
-
-Próximas etapas:
-- Configuração da conexão entre Spring Boot e PostgreSQL.
-- Mapeamento das entidades com JPA.
-- Implementação dos repositórios e serviços.
-- Desenvolvimento dos endpoints REST.
-- Validações, tratamento de erros e testes automatizados.
-- Documentação da API.
-
-## Como executar
-
-Os passos de configuração da conexão com o PostgreSQL e execução da aplicação serão documentados conforme o desenvolvimento avançar.
-
-## Objetivo de aprendizagem
-
-Projeto desenvolvido para consolidar conhecimentos de Java e desenvolvimento backend, com aplicação de modelagem relacional, APIs REST, persistência de dados e regras de negócio.
+O DevStock é um projeto prático de aprendizado e portfólio, com evolução incremental das funcionalidades e aplicação de conceitos de desenvolvimento backend com Java.
 
 ## Autor
 
-**Luciano Rodrigues**
+Desenvolvido por Luciano Rodrigues.
 
-- GitHub: [@larsilvapx](https://github.com/larsilvapx)
-- LinkedIn: [linkedin.com/in/lucasards](https://linkedin.com/in/lucasards)
+- GitHub: [larsilvapx](https://github.com/larsilvapx)
+- Repositório: [DevStock](https://github.com/larsilvapx/devstock)
