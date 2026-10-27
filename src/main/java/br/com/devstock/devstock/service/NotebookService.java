@@ -61,7 +61,7 @@ public class NotebookService {
         notebookExistente.setMarca(notebookAtualizado.getMarca());
         notebookExistente.setModelo((notebookAtualizado.getModelo()));
         notebookExistente.setProcessador((notebookAtualizado.getProcessador()));
-        notebookExistente.setMemoria_ram(notebookAtualizado.getMemoria_ram());
+        notebookExistente.setMemoriaRam(notebookAtualizado.getMemoriaRam());
         notebookExistente.setArmazenamento(notebookAtualizado.getArmazenamento());
         notebookExistente.setSistemaOperacional(
                 notebookAtualizado.getSistemaOperacional());

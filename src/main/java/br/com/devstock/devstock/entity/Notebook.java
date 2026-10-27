@@ -15,7 +15,7 @@ public class Notebook {
     @Column(name = "patrimonio")
     private String patrimonio;
 
-    @Column(name = "serialNumber")
+    @Column(name = "serial_number")
     private String serialNumber;
 
     @Column(name = "marca", nullable = false)
@@ -28,21 +28,21 @@ public class Notebook {
     private String processador;
 
     @Column(name = "memoria_ram")
-    private String memoria_ram;
+    private String memoriaRam;
 
     @Column(name = "armazenamento")
     private String armazenamento;
 
-    @Column(name = "sistemaOperacional")
+    @Column(name = "sistema_operacional")
     private String sistemaOperacional;
 
     @Column(name = "status", nullable = false)
     private String status;
 
-    @Column(name = "dataUltimaComunicacao")
+    @Column(name = "data_ultima_comunicacao")
     private LocalDate dataUltimaComunicacao;
 
-    @Column(name = "dataAquisicao")
+    @Column(name = "data_aquisicao")
     private LocalDate dataAquisicao;
 
     public LocalDate getDataAquisicao() {
@@ -53,7 +53,7 @@ public class Notebook {
         this.dataAquisicao = dataAquisicao;
     }
 
-    public Notebook(){
+    public Notebook() {
 
     }
 
@@ -105,13 +105,6 @@ public class Notebook {
         this.processador = processador;
     }
 
-    public String getMemoria_ram() {
-        return memoria_ram;
-    }
-
-    public void setMemoria_ram(String memoria_ram) {
-        this.memoria_ram = memoria_ram;
-    }
 
     public String getArmazenamento() {
         return armazenamento;
@@ -143,5 +136,13 @@ public class Notebook {
 
     public void setDataUltimaComunicacao(LocalDate dataUltimaComunicacao) {
         this.dataUltimaComunicacao = dataUltimaComunicacao;
+    }
+
+    public String getMemoriaRam() {
+        return memoriaRam;
+    }
+
+    public void setMemoriaRam(String memoriaRam) {
+        this.memoriaRam = memoriaRam;
     }
 }

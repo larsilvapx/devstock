@@ -3,6 +3,7 @@ package br.com.devstock.devstock.service;
 
 import br.com.devstock.devstock.entity.Desenvolvedor;
 import br.com.devstock.devstock.exception.ConflitoCadastroException;
+import br.com.devstock.devstock.exception.RecursoNaoEncontradoException;
 import br.com.devstock.devstock.repository.DesenvolvedorRepository;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +26,7 @@ public class DesenvolvedorService {
     public Desenvolvedor buscarPorId(Long id) {
         return desenvolvedorRepository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException(
+                        new RecursoNaoEncontradoException(
                                 "Desenvolvedor não encontrado: " + id
                         )
                 );
