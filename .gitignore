@@ -31,3 +31,23 @@ build/
 
 ### VS Code ###
 .vscode/
+
+
+### Variáveis de ambiente e credenciais ###
+.env
+.env.*
+!.env.example
+application-local.properties
+application-local.yml
+application-local.yaml
+
+### Logs ###
+*.log
+logs/
+
+### Arquivos temporários ###
+*.tmp
+*.bak
+.DS_Store
+Thumbs.db
+
