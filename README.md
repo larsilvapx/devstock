@@ -63,17 +63,83 @@ A implementação dessas entidades e seus relacionamentos ocorre de forma increm
 
 ## Endpoints
 
-Os endpoints de notebooks estão organizados sob o prefixo `/api/notebooks`.
+O DevStock disponibiliza endpoints REST para gerenciamento de notebooks e desenvolvedores.
 
-| Método HTTP | Endpoint | Operação |
-|---|---|---|
-| GET | `/api/notebooks` | Listar notebooks |
-| GET | `/api/notebooks/{id}` | Consultar notebook por ID |
-| POST | `/api/notebooks` | Cadastrar notebook |
-| PUT | `/api/notebooks/{id}` | Atualizar notebook |
-| DELETE | `/api/notebooks/{id}` | Excluir notebook |
+### API de Notebooks
 
-Os códigos HTTP e os formatos de resposta devem ser conferidos conforme a implementação atual da API.
+**Endpoint-base:** `/api/notebooks`
+
+| Método | Endpoint | Descrição | Resposta de sucesso |
+|---|---|---|---|
+| GET | `/api/notebooks` | Lista todos os notebooks | `200 OK` |
+| GET | `/api/notebooks/{id}` | Busca notebook pelo ID | `200 OK` |
+| POST | `/api/notebooks` | Cadastra um notebook | `201 Created` |
+| PUT | `/api/notebooks/{id}` | Atualiza um notebook | `200 OK` |
+| DELETE | `/api/notebooks/{id}` | Exclui um notebook | `204 No Content` |
+
+#### Exemplo de cadastro
+
+**Requisição:** `POST /api/notebooks`
+
+```json
+{
+  "patrimonio": "PAT-006",
+  "serialNumber": "SN-DEVSTOCK-006",
+  "marca": "Dell",
+  "modelo": "Latitude 5440",
+  "processador": "Intel Core i5",
+  "memoriaRam": "16 GB",
+  "armazenamento": "512 GB SSD",
+  "sistemaOperacional": "Windows 11",
+  "status": "DISPONIVEL",
+  "dataUltimaComunicacao": "2026-10-27",
+  "dataAquisicao": "2026-10-28"
+}
+```
+
+Os valores são ilustrativos. Utilize um número de série único e um status compatível com as regras da aplicação.
+
+O cadastro retorna `201 Created` e informa a localização do recurso no cabeçalho `Location`.
+
+### API de Desenvolvedores
+
+**Endpoint-base:** `/api/desenvolvedores`
+
+| Método | Endpoint | Descrição | Resposta de sucesso |
+|---|---|---|---|
+| GET | `/api/desenvolvedores` | Lista todos os desenvolvedores | `200 OK` |
+| GET | `/api/desenvolvedores/{id}` | Busca desenvolvedor pelo ID | `200 OK` |
+| POST | `/api/desenvolvedores` | Cadastra um desenvolvedor | `200 OK` |
+
+#### Exemplo de cadastro
+
+**Requisição:** `POST /api/desenvolvedores`
+
+```json
+{
+  "nome": "João da Silva",
+  "email": "joao.silva@example.com",
+  "matricula": "DEV006",
+  "cargo": "Desenvolvedor Backend",
+  "dataAdmissao": "2026-10-28",
+  "ativo": true
+}
+```
+
+O e-mail e a matrícula devem ser únicos. O cadastro retorna o objeto criado no corpo da resposta.
+
+### Códigos de erro
+
+A aplicação possui tratamento global de exceções para padronizar erros.
+
+| Código HTTP | Significado |
+|---|---|
+| `400 Bad Request` | Requisição malformada ou parâmetro inválido |
+| `404 Not Found` | Recurso não encontrado |
+| `409 Conflict` | Conflito de cadastro ou violação de integridade |
+| `500 Internal Server Error` | Erro inesperado no servidor |
+
+A ocorrência de cada erro depende das regras de negócio, das exceções lançadas e das restrições do banco de dados.
 
 ## Configuração do ambiente
 
