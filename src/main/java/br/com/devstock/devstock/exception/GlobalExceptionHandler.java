@@ -81,7 +81,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resposta);
     }
 
-    public ResponseEntity<Map<String, String>> tratarErroInterno(Exception ex){
+    @ExceptionHandler public ResponseEntity<Map<String, String>> tratarErroInterno(Exception ex){
 
         logger.error("Ocorreu um erro inexperado na aplicação", ex);
 
