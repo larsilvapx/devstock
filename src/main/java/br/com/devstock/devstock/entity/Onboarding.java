@@ -23,7 +23,7 @@ public class Onboarding {
     private Kit kit;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(name = "status", nullable = false, length = 20)
     private StatusOnboard status;
 
     @Column(name = "data_criacao", nullable = false)
@@ -32,12 +32,19 @@ public class Onboarding {
     @Column(name = "data_entrega")
     private LocalDateTime dataEntrega;
 
-    @Column(name = "responsavel_entrega", nullable = false, length = 150)
+    @Column(name = "responsavel_entrega", length = 150)
     private String responsavelEntrega;
 
     @Column(name = "data_devolucao")
     private LocalDateTime dataDevolucao;
 
+    @Column(name = "responsavel_devolucao", length = 150)
+    private String responsavelDevolucao;
+
+    @Column(name = "observacao_devolucao", length = 500)
+    private String observacaoDevolucao;
+
+    @PrePersist
     protected void prePersist(){
         if (dataCriacao == null){
             dataCriacao = LocalDateTime.now();
@@ -106,5 +113,21 @@ public class Onboarding {
 
     public void setDataDevolucao(LocalDateTime dataDevolucao) {
         this.dataDevolucao = dataDevolucao;
+    }
+
+    public String getResponsavelDevolucao() {
+        return responsavelDevolucao;
+    }
+
+    public void setResponsavelDevolucao(String responsavelDevolucao) {
+        this.responsavelDevolucao = responsavelDevolucao;
+    }
+
+    public String getObservacaoDevolucao() {
+        return observacaoDevolucao;
+    }
+
+    public void setObservacaoDevolucao(String observacaoDevolucao) {
+        this.observacaoDevolucao = observacaoDevolucao;
     }
 }

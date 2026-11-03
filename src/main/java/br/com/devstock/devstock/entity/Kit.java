@@ -37,6 +37,7 @@ public class Kit {
     public Kit(){
 
     }
+    @PrePersist
     protected void prePersist(){
         if(dataCriacao == null){
             dataCriacao = LocalDateTime.now();

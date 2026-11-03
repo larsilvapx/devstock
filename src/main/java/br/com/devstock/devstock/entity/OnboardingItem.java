@@ -41,4 +41,77 @@ public class OnboardingItem {
     private String observacaoDevolucao;
 
     // Getters e Setters
+
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Onboarding getOnboarding() {
+        return onboarding;
+    }
+
+    public void setOnboarding(Onboarding onboarding) {
+        this.onboarding = onboarding;
+    }
+
+    public Notebook getNotebook() {
+        return notebook;
+    }
+
+    public void setNotebook(Notebook notebook) {
+        this.notebook = notebook;
+    }
+
+    public String getTipoItem() {
+        return tipoItem;
+    }
+
+    public void setTipoItem(String tipoItem) {
+        this.tipoItem = tipoItem;
+    }
+
+    public String getDescricao() {
+        return descricao;
+    }
+
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
+    }
+
+    public String getIdentificador() {
+        return identificador;
+    }
+
+    public void setIdentificador(String identificador) {
+        this.identificador = identificador;
+    }
+
+    public Integer getQuantidade() {
+        return quantidade;
+    }
+
+    public void setQuantidade(Integer quantidade) {
+        this.quantidade = quantidade;
+    }
+
+    public String getObservacaoEntrega() {
+        return observacaoEntrega;
+    }
+
+    public void setObservacaoEntrega(String observacaoEntrega) {
+        this.observacaoEntrega = observacaoEntrega;
+    }
+
+    public String getObservacaoDevolucao() {
+        return observacaoDevolucao;
+    }
+
+    public void setObservacaoDevolucao(String observacaoDevolucao) {
+        this.observacaoDevolucao = observacaoDevolucao;
+    }
 }
