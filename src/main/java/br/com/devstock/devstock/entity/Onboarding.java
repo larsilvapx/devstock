@@ -130,4 +130,5 @@ public class Onboarding {
     public void setObservacaoDevolucao(String observacaoDevolucao) {
         this.observacaoDevolucao = observacaoDevolucao;
     }
+
 }

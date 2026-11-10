@@ -22,7 +22,7 @@ public class Movimentacao {
     private Onboarding onboarding;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_mvimentacao", nullable = false, length = 20)
+    @Column(name = "tipo", nullable = false, length = 20)
     private TipoMovimentacao tipoMovimentacao;
 
     @Column(name = "data_hora", nullable = false)
@@ -31,7 +31,7 @@ public class Movimentacao {
     @Column(name = "responsavel", nullable = false, length = 150)
     private String responsavel;
 
-    @Column(name = "observacao", nullable = false, length = 500)
+    @Column(name = "observacao", length = 500)
     private String observacao;
 
     @PrePersist

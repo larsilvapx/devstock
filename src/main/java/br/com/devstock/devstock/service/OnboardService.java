@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -224,5 +225,23 @@ public class OnboardService {
         onboarding.setResponsavelEntrega(responsavel.trim());
 
         return onboardRepository.save(onboarding);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Onboarding> buscarOnboarding(){
+        return onboardRepository.findAll();
+    }
+
+    @Transactional
+    public Onboarding buscarOnboarding(Long id){
+        return onboardRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
+                        "Onboard não encontrado." + id
+                ));
+    }
+
+    @Transactional(readOnly = true)
+    public List<Onboarding> listarOnboardings() {
+        return onboardRepository.findAll();
     }
 }
