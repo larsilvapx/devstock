@@ -55,20 +55,27 @@ Facilitar o controle de notebooks e equipamentos disponibilizados aos desenvolve
 - Verificação da disponibilidade do notebook antes de associá-lo ao onboarding.
 - Impedimento de criação de um novo onboarding enquanto existir outro em andamento para o mesmo desenvolvedor.
 - Preservação do histórico dos processos de onboarding.
+- Consulta de todos os onboardings cadastrados.
+- Consulta de onboarding por identificador.
+- Confirmação da entrega dos equipamentos.
+- Registro automático da data e do responsável pela entrega.
+- Atualização automática do status do notebook para `EM_USO` após a entrega.
 
 ### Histórico de movimentações
 
-A aplicação possui a estrutura inicial para registrar movimentações relacionadas exclusivamente aos notebooks.
+A aplicação possui uma estrutura para registrar movimentações relacionadas aos notebooks.
 
 Os tipos de movimentação definidos são:
 
-| Tipo | Descrição |
-|---|---|
-| `ENTREGA` | Registro da entrega do notebook ao desenvolvedor. |
-| `DEVOLUCAO` | Registro da devolução do notebook. |
-| `OCORRENCIA` | Registro de ocorrências relacionadas ao equipamento. |
+| Tipo | Descrição | Situação |
+|---|---|---|
+| `ENTREGA` | Registro da entrega do notebook ao desenvolvedor. | Implementado |
+| `DEVOLUCAO` | Registro da devolução do notebook. | Pendente |
+| `OCORRENCIA` | Registro de ocorrências relacionadas ao equipamento. | Pendente |
 
-Cada movimentação foi modelada para armazenar:
+A movimentação de entrega é registrada automaticamente durante a confirmação da entrega do onboarding.
+
+Cada movimentação armazena:
 
 - Notebook relacionado.
 - Onboarding associado.
@@ -77,7 +84,7 @@ Cada movimentação foi modelada para armazenar:
 - Responsável pelo registro.
 - Observações.
 
-**Status:** estrutura de entidades, enumerações e repositórios criada. A integração com as operações de entrega, devolução e ocorrência está em desenvolvimento.
+A implementação dos fluxos de devolução, ocorrência e consulta do histórico será realizada nas próximas etapas.
 
 ## Arquitetura
 
@@ -118,11 +125,9 @@ O modelo de dados contempla entidades relacionadas à gestão de ativos de TI:
 - Um item de onboarding pode estar associado a um notebook.
 - Uma movimentação está vinculada a um notebook e ao onboarding correspondente.
 
-O histórico de movimentações foi planejado para permitir o rastreamento dos eventos relacionados aos notebooks ao longo do ciclo de utilização.
-
 ## Endpoints
 
-O DevStock disponibiliza endpoints REST para gerenciamento de notebooks, desenvolvedores e processos de onboarding.
+A API disponibiliza endpoints REST para gerenciamento de notebooks, desenvolvedores e processos de onboarding.
 
 ### API de Notebooks
 
@@ -152,11 +157,63 @@ O DevStock disponibiliza endpoints REST para gerenciamento de notebooks, desenvo
 
 | Método | Endpoint | Descrição | Resposta de sucesso |
 |---|---|---|---|
+| GET | `/api/onboardings` | Lista todos os onboardings | `200 OK` |
+| GET | `/api/onboardings/{id}` | Busca onboarding pelo ID | `200 OK` |
 | POST | `/api/onboardings` | Cria um onboarding para um desenvolvedor utilizando um kit | `201 Created` |
+| PUT | `/api/onboardings/{id}/confirmar-entrega` | Confirma a entrega dos equipamentos | `200 OK` |
 
 O endpoint de criação retorna o recurso criado no corpo da resposta e informa sua localização no cabeçalho `Location`.
 
-> Os endpoints de entrega, devolução e consulta de movimentações serão documentados após sua implementação.
+### Exemplos de requisições
+
+#### Criar onboarding
+
+`POST /api/onboardings`
+
+```json
+{
+  "desenvolvedorId": 1,
+  "kitId": 1
+}
+```
+
+Exemplo de resposta:
+
+```json
+{
+  "id": 1,
+  "desenvolvedorId": 1,
+  "kitId": 1,
+  "status": "EM_ANDAMENTO",
+  "dataCriacao": "2026-11-10T16:20:11"
+}
+```
+
+#### Confirmar entrega
+
+`PUT /api/onboardings/2/confirmar-entrega`
+
+```json
+{
+  "responsavel": "Luciano Rodrigues",
+  "observacao": "Entrega do kit realizada e equipamentos conferidos."
+}
+```
+
+Exemplo de resposta:
+
+```json
+{
+  "id": 2,
+  "status": "EM_ANDAMENTO",
+  "dataEntrega": "2026-11-10T17:54:01",
+  "responsavelEntrega": "Luciano Rodrigues"
+}
+```
+
+A confirmação da entrega também registra automaticamente uma movimentação do tipo `ENTREGA`, vinculada ao notebook e ao onboarding correspondente.
+
+Uma nova tentativa de confirmar a mesma entrega é impedida pela regra de negócio, retornando `409 Conflict`.
 
 ## Códigos de erro
 
@@ -166,7 +223,7 @@ A aplicação possui tratamento global de exceções para padronizar erros.
 |---|---|
 | `400 Bad Request` | Requisição malformada ou parâmetro inválido |
 | `404 Not Found` | Recurso não encontrado |
-| `409 Conflict` | Conflito de cadastro ou violação de integridade |
+| `409 Conflict` | Conflito de cadastro ou violação de regra de negócio |
 | `500 Internal Server Error` | Erro inesperado no servidor |
 
 A ocorrência de cada erro depende das regras de negócio, das exceções lançadas e das restrições do banco de dados.
@@ -213,8 +270,8 @@ A execução depende de o PostgreSQL estar acessível e de as variáveis de ambi
 
 ## Próximas etapas
 
-- [ ] Implementar a confirmação de entrega do notebook.
-- [ ] Registrar automaticamente a movimentação `ENTREGA`.
+- [x] Implementar a confirmação de entrega do notebook.
+- [x] Registrar automaticamente a movimentação `ENTREGA`.
 - [ ] Implementar o processo de devolução dos equipamentos.
 - [ ] Registrar automaticamente a movimentação `DEVOLUCAO`.
 - [ ] Implementar o registro de ocorrências.
