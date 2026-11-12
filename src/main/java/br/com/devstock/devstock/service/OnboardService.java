@@ -1,6 +1,8 @@
 
 package br.com.devstock.devstock.service;
 
+import br.com.devstock.devstock.dto.ConfirmarDevolucaoRequest;
+import br.com.devstock.devstock.dto.DevolucaoItemRequest;
 import br.com.devstock.devstock.entity.*;
 import br.com.devstock.devstock.enums.StatusOnboard;
 import br.com.devstock.devstock.enums.TipoMovimentacao;
@@ -12,9 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class OnboardService {
@@ -243,5 +243,185 @@ public class OnboardService {
     @Transactional(readOnly = true)
     public List<Onboarding> listarOnboardings() {
         return onboardRepository.findAll();
+    }
+
+    @Transactional
+    public Onboarding confirmarDevolucao(
+            Long onboardingId,
+            ConfirmarDevolucaoRequest request
+    ) {
+
+        // 1. Validar a requisição
+        if (request == null) {
+            throw new ConflitoCadastroException(
+                    "Os dados da devolução devem ser informados."
+            );
+        }
+
+        if (request.responsavel() == null ||
+                request.responsavel().isBlank()) {
+            throw new ConflitoCadastroException(
+                    "O responsável pela devolução deve ser informado."
+            );
+        }
+
+        if (request.itens() == null || request.itens().isEmpty()) {
+            throw new ConflitoCadastroException(
+                    "Os itens da devolução devem ser informados."
+            );
+        }
+
+        // 2. Localizar o onboarding
+        Onboarding onboarding = onboardRepository
+                .findById(onboardingId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
+                        "Onboarding não encontrado: " + onboardingId
+                ));
+
+        // 3. Validar o status do onboarding
+        if (onboarding.getStatus() != StatusOnboard.EM_ANDAMENTO) {
+            throw new ConflitoCadastroException(
+                    "Somente onboardings em andamento podem receber uma devolução."
+            );
+        }
+
+        // 4. Verificar se a entrega foi confirmada
+        if (onboarding.getDataEntrega() == null) {
+            throw new ConflitoCadastroException(
+                    "Não é possível devolver equipamentos sem uma entrega confirmada."
+            );
+        }
+
+        // 5. Impedir devolução duplicada
+        if (onboarding.getDataDevolucao() != null) {
+            throw new ConflitoCadastroException(
+                    "A devolução deste onboarding já foi confirmada."
+            );
+        }
+
+        // 6. Buscar os itens pertencentes ao onboarding
+        List<OnboardingItem> itens =
+                onboardItemRepository.findByOnboardingId(onboardingId);
+
+        // 7. Validar se todos os itens foram informados
+        Set<Long> idsInformados = new HashSet<>();
+
+        for (DevolucaoItemRequest itemRequest : request.itens()) {
+
+            if (itemRequest == null ||
+                    itemRequest.onboardingItemId() == null ||
+                    itemRequest.situacao() == null) {
+                throw new ConflitoCadastroException(
+                        "Cada item deve possuir identificador e situação."
+                );
+            }
+
+            if (!idsInformados.add(itemRequest.onboardingItemId())) {
+                throw new ConflitoCadastroException(
+                        "Um mesmo item não pode ser informado duas vezes."
+                );
+            }
+        }
+
+        if (idsInformados.size() != itens.size()) {
+            throw new ConflitoCadastroException(
+                    "Todos os itens do onboarding devem ser informados."
+            );
+        }
+
+        // 8. Processar cada item da devolução
+        for (OnboardingItem item : itens) {
+
+            DevolucaoItemRequest itemRequest = null;
+
+            for (DevolucaoItemRequest informado : request.itens()) {
+                if (item.getId().equals(informado.onboardingItemId())) {
+                    itemRequest = informado;
+                    break;
+                }
+            }
+
+            if (itemRequest == null) {
+                throw new ConflitoCadastroException(
+                        "Item não pertence à devolução informada."
+                );
+            }
+
+            String observacaoItem = itemRequest.observacao();
+
+            // Registrar a situação individual do item
+            String observacaoDevolucao =
+                    "Situação: " + itemRequest.situacao();
+
+            if (observacaoItem != null && !observacaoItem.isBlank()) {
+                observacaoDevolucao += " - " + observacaoItem.trim();
+            }
+
+            item.setObservacaoDevolucao(observacaoDevolucao);
+
+            Notebook notebook = item.getNotebook();
+
+            // Itens que não são notebooks recebem somente o registro
+            // da situação no onboarding_item.
+            if (notebook == null) {
+                continue;
+            }
+
+            // Validar o status atual do notebook
+            if (!STATUS_EM_USO.equalsIgnoreCase(notebook.getStatus())) {
+                throw new ConflitoCadastroException(
+                        "O notebook " + notebook.getSerialNumber()
+                                + " não está com status EM_USO."
+                );
+            }
+
+            // Definir o novo status conforme a situação informada
+            switch (itemRequest.situacao()) {
+
+                case BOM_ESTADO:
+                    notebook.setStatus(STATUS_DISPONIVEL);
+                    break;
+
+                case DANIFICADO:
+                    notebook.setStatus("MANUTENCAO");
+                    break;
+
+                case NAO_APRESENTADO:
+                    // O equipamento permanece EM_USO.
+                    // Não será registrada movimentação de devolução.
+                    continue;
+            }
+
+            notebookRepository.save(notebook);
+
+            // Registrar movimentação dos equipamentos apresentados
+            Movimentacao movimentacao = new Movimentacao();
+
+            movimentacao.setNotebook(notebook);
+            movimentacao.setOnboarding(onboarding);
+            movimentacao.setTipoMovimentacao(
+                    TipoMovimentacao.DEVOLUCAO
+            );
+            movimentacao.setResponsavel(request.responsavel().trim());
+            movimentacao.setObservacao(observacaoDevolucao);
+
+            movimentacaoRepository.save(movimentacao);
+        }
+
+        // 9. Registrar os dados gerais da devolução
+        onboarding.setDataDevolucao(LocalDateTime.now());
+        onboarding.setResponsavelDevolucao(request.responsavel().trim());
+
+        if (request.observacao() != null &&
+                !request.observacao().isBlank()) {
+            onboarding.setObservacaoDevolucao(
+                    request.observacao().trim()
+            );
+        }
+
+        // 10. Encerrar o onboarding
+        onboarding.setStatus(StatusOnboard.ENCERRADO);
+
+        return onboardRepository.save(onboarding);
     }
 }

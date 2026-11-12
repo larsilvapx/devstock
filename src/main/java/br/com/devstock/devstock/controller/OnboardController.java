@@ -1,10 +1,7 @@
 
 package br.com.devstock.devstock.controller;
 
-import br.com.devstock.devstock.dto.ConfirmarEntregaRequest;
-import br.com.devstock.devstock.dto.ConfirmarEntregaResponse;
-import br.com.devstock.devstock.dto.CriarOnboardingRequest;
-import br.com.devstock.devstock.dto.OnboardingResponse;
+import br.com.devstock.devstock.dto.*;
 import br.com.devstock.devstock.entity.Onboarding;
 import br.com.devstock.devstock.service.OnboardService;
 
@@ -74,6 +71,24 @@ public class OnboardController {
                 onboarding.getResponsavelEntrega()
         );
 
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}/confirmar-devolucao")
+    public ResponseEntity<ConfirmarDevolucaoResponse> confirmarDevolucao(
+            @PathVariable Long id,
+            @RequestBody ConfirmarDevolucaoRequest request
+    ){
+        Onboarding onboarding = onboardService.confirmarDevolucao(
+                id,
+                request
+        );
+        ConfirmarDevolucaoResponse response = new ConfirmarDevolucaoResponse(
+                onboarding.getId(),
+                onboarding.getStatus(),
+                onboarding.getDataDevolucao(),
+                onboarding.getResponsavelDevolucao()
+        );
         return ResponseEntity.ok(response);
     }
 

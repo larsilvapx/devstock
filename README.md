@@ -270,18 +270,36 @@ A execução depende de o PostgreSQL estar acessível e de as variáveis de ambi
 
 ## Próximas etapas
 
-- [x] Implementar a confirmação de entrega do notebook.
+## Checklist de evolução do projeto
+
+### Gestão de notebooks
+- [x] Implementar CRUD de notebooks.
+- [x] Implementar validações de cadastro e tratamento de erros.
+
+### Processo de onboarding
+- [x] Implementar criação de onboarding.
+- [x] Validar disponibilidade dos equipamentos antes da entrega.
+- [x] Implementar confirmação de entrega dos equipamentos.
 - [x] Registrar automaticamente a movimentação `ENTREGA`.
-- [ ] Implementar o processo de devolução dos equipamentos.
-- [ ] Registrar automaticamente a movimentação `DEVOLUCAO`.
-- [ ] Implementar o registro de ocorrências.
-- [ ] Criar endpoint para consulta do histórico de movimentações por notebook.
-- [ ] Finalizar a documentação dos endpoints e exemplos de requisições.
+- [ ] Implementar processo de devolução dos equipamentos.
+    - [x] Registrar responsável e data da devolução.
+    - [x] Registrar a situação individual dos itens.
+    - [x] Retornar notebook em bom estado para `DISPONIVEL`.
+    - [x] Alterar notebook danificado para `MANUTENCAO`.
+    - [x] Registrar item não apresentado sem alterar seu status `EM_USO`.
+    - [x] Encerrar onboarding após a devolução.
+    - [ ] Finalizar validações e testes de todos os cenários.
+- [ ] Registrar automaticamente a movimentação `DEVOLUCAO` e validar todos os cenários.
+
+### Próximas funcionalidades
+- [ ] Implementar registro de ocorrências.
+- [ ] Criar endpoint de histórico de movimentações por notebook.
+- [ ] Melhorar documentação da API com exemplos de requisições.
 - [ ] Revisar e ampliar o tratamento de erros.
-- [ ] Criar e ampliar testes automatizados.
-- [ ] Avaliar a utilização de DTOs e validação de entrada.
-- [ ] Documentar a API com OpenAPI/Swagger.
-- [ ] Preparar a execução com Docker.
+- [ ] Implementar testes automatizados.
+- [ ] Revisar validações dos DTOs.
+- [ ] Configurar documentação OpenAPI/Swagger.
+- [ ] Preparar ambiente com Docker.
 
 ## Status
 
