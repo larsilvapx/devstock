@@ -26,17 +26,14 @@ Facilitar o controle de notebooks e equipamentos disponibilizados aos desenvolve
 
 - Listagem de notebooks cadastrados.
 - Consulta de notebook por identificador.
-- Cadastro de notebooks.
-- Atualização de informações.
-- Exclusão de notebooks, respeitando as restrições de integridade do banco de dados.
+- Cadastro, atualização e exclusão de notebooks.
 - Verificação de duplicidade do número de série.
-- Tratamento de conflitos de dados.
+- Tratamento de conflitos de dados e restrições de integridade.
 
 ### Gerenciamento de desenvolvedores
 
 - Cadastro de desenvolvedores.
-- Listagem de desenvolvedores.
-- Consulta por identificador.
+- Listagem e consulta por identificador.
 - Controle de informações cadastrais.
 - Restrição de duplicidade de e-mail e matrícula.
 
@@ -53,27 +50,35 @@ Facilitar o controle de notebooks e equipamentos disponibilizados aos desenvolve
 - Associação dos itens do kit ao processo de onboarding.
 - Identificação do notebook pelo número de série.
 - Verificação da disponibilidade do notebook antes de associá-lo ao onboarding.
-- Impedimento de criação de um novo onboarding enquanto existir outro em andamento para o mesmo desenvolvedor.
+- Impedimento de criação de novo onboarding enquanto existir outro em andamento para o mesmo desenvolvedor.
 - Preservação do histórico dos processos de onboarding.
-- Consulta de todos os onboardings cadastrados.
-- Consulta de onboarding por identificador.
+- Consulta de todos os onboardings e consulta por identificador.
 - Confirmação da entrega dos equipamentos.
 - Registro automático da data e do responsável pela entrega.
-- Atualização automática do status do notebook para `EM_USO` após a entrega.
+- Atualização automática do notebook para `EM_USO` após a entrega.
+- Confirmação da devolução dos equipamentos.
+- Registro da data e do responsável pela devolução.
+- Registro individual da situação dos itens devolvidos.
+- Atualização do notebook conforme sua condição:
+  - `BOM_ESTADO`: retorna para `DISPONIVEL`.
+  - `DANIFICADO`: passa para `MANUTENCAO`.
+  - `NAO_APRESENTADO`: permanece `EM_USO`.
+- Encerramento do onboarding após a confirmação da devolução.
+- Bloqueio de devolução duplicada.
 
 ### Histórico de movimentações
 
 A aplicação possui uma estrutura para registrar movimentações relacionadas aos notebooks.
 
-Os tipos de movimentação definidos são:
-
 | Tipo | Descrição | Situação |
 |---|---|---|
 | `ENTREGA` | Registro da entrega do notebook ao desenvolvedor. | Implementado |
-| `DEVOLUCAO` | Registro da devolução do notebook. | Pendente |
+| `DEVOLUCAO` | Registro da devolução física do notebook. | Implementado |
 | `OCORRENCIA` | Registro de ocorrências relacionadas ao equipamento. | Pendente |
 
-A movimentação de entrega é registrada automaticamente durante a confirmação da entrega do onboarding.
+As movimentações de entrega e devolução são registradas automaticamente durante os respectivos processos de onboarding.
+
+**Regra importante:** quando um notebook é marcado como `NAO_APRESENTADO`, o onboarding pode ser encerrado, mas o notebook permanece `EM_USO` e não recebe uma movimentação de devolução.
 
 Cada movimentação armazena:
 
@@ -83,8 +88,6 @@ Cada movimentação armazena:
 - Data e hora do evento.
 - Responsável pelo registro.
 - Observações.
-
-A implementação dos fluxos de devolução, ocorrência e consulta do histórico será realizada nas próximas etapas.
 
 ## Arquitetura
 
@@ -159,8 +162,9 @@ A API disponibiliza endpoints REST para gerenciamento de notebooks, desenvolvedo
 |---|---|---|---|
 | GET | `/api/onboardings` | Lista todos os onboardings | `200 OK` |
 | GET | `/api/onboardings/{id}` | Busca onboarding pelo ID | `200 OK` |
-| POST | `/api/onboardings` | Cria um onboarding para um desenvolvedor utilizando um kit | `201 Created` |
+| POST | `/api/onboardings` | Cria onboarding vinculando desenvolvedor e kit | `201 Created` |
 | PUT | `/api/onboardings/{id}/confirmar-entrega` | Confirma a entrega dos equipamentos | `200 OK` |
+| PUT | `/api/onboardings/{id}/confirmar-devolucao` | Confirma a devolução dos equipamentos | `200 OK` |
 
 O endpoint de criação retorna o recurso criado no corpo da resposta e informa sua localização no cabeçalho `Location`.
 
@@ -200,20 +204,44 @@ Exemplo de resposta:
 }
 ```
 
-Exemplo de resposta:
+A confirmação registra automaticamente uma movimentação `ENTREGA`, vinculada ao notebook e ao onboarding correspondente, e atualiza o status do notebook para `EM_USO`.
+
+Uma nova tentativa de confirmar a mesma entrega é impedida pela regra de negócio, retornando `409 Conflict`.
+
+#### Confirmar devolução
+
+`PUT /api/onboardings/2/confirmar-devolucao`
 
 ```json
 {
-  "id": 2,
-  "status": "EM_ANDAMENTO",
-  "dataEntrega": "2026-11-10T17:54:01",
-  "responsavelEntrega": "Luciano Rodrigues"
+  "responsavel": "Luciano Rodrigues",
+  "observacao": "Devolução dos equipamentos ao setor de TI.",
+  "itens": [
+    {
+      "onboardingItemId": 6,
+      "situacao": "BOM_ESTADO",
+      "observacao": "Notebook devolvido em perfeito estado."
+    },
+    {
+      "onboardingItemId": 7,
+      "situacao": "BOM_ESTADO",
+      "observacao": "Mouse devolvido em boas condições."
+    }
+  ]
 }
 ```
 
-A confirmação da entrega também registra automaticamente uma movimentação do tipo `ENTREGA`, vinculada ao notebook e ao onboarding correspondente.
+Valores aceitos para a situação de devolução:
 
-Uma nova tentativa de confirmar a mesma entrega é impedida pela regra de negócio, retornando `409 Conflict`.
+- `BOM_ESTADO`
+- `DANIFICADO`
+- `NAO_APRESENTADO`
+
+A requisição deve informar todos os itens associados ao onboarding, registrando individualmente a situação e as observações de cada um.
+
+A aplicação registra automaticamente uma movimentação `DEVOLUCAO` para notebooks fisicamente apresentados. No caso de item não apresentado, a situação fica registrada no onboarding, sem alterar o status `EM_USO` do notebook e sem gerar movimentação de devolução.
+
+Uma nova tentativa de devolução de um onboarding encerrado é bloqueada, retornando `409 Conflict`.
 
 ## Códigos de erro
 
@@ -268,33 +296,35 @@ Se a compilação terminar com sucesso, inicie a aplicação:
 
 A execução depende de o PostgreSQL estar acessível e de as variáveis de ambiente estarem configuradas corretamente.
 
-## Próximas etapas
-
 ## Checklist de evolução do projeto
 
 ### Gestão de notebooks
+
 - [x] Implementar CRUD de notebooks.
 - [x] Implementar validações de cadastro e tratamento de erros.
 
 ### Processo de onboarding
+
 - [x] Implementar criação de onboarding.
 - [x] Validar disponibilidade dos equipamentos antes da entrega.
 - [x] Implementar confirmação de entrega dos equipamentos.
 - [x] Registrar automaticamente a movimentação `ENTREGA`.
-- [ ] Implementar processo de devolução dos equipamentos.
-    - [x] Registrar responsável e data da devolução.
-    - [x] Registrar a situação individual dos itens.
-    - [x] Retornar notebook em bom estado para `DISPONIVEL`.
-    - [x] Alterar notebook danificado para `MANUTENCAO`.
-    - [x] Registrar item não apresentado sem alterar seu status `EM_USO`.
-    - [x] Encerrar onboarding após a devolução.
-    - [ ] Finalizar validações e testes de todos os cenários.
-- [ ] Registrar automaticamente a movimentação `DEVOLUCAO` e validar todos os cenários.
+- [x] Implementar processo de devolução dos equipamentos.
+  - [x] Registrar responsável e data da devolução.
+  - [x] Registrar a situação individual dos itens.
+  - [x] Retornar notebook em bom estado para `DISPONIVEL`.
+  - [x] Alterar notebook danificado para `MANUTENCAO`.
+  - [x] Registrar item não apresentado sem alterar seu status `EM_USO`.
+  - [x] Encerrar onboarding após a devolução.
+- [x] Registrar automaticamente a movimentação `DEVOLUCAO` para notebooks apresentados.
+- [x] Validar os cenários de devolução: bom estado, danificado e não apresentado.
+- [x] Validar bloqueio de devolução duplicada.
 
 ### Próximas funcionalidades
+
 - [ ] Implementar registro de ocorrências.
 - [ ] Criar endpoint de histórico de movimentações por notebook.
-- [ ] Melhorar documentação da API com exemplos de requisições.
+- [ ] Ampliar a documentação da API com exemplos de requisições.
 - [ ] Revisar e ampliar o tratamento de erros.
 - [ ] Implementar testes automatizados.
 - [ ] Revisar validações dos DTOs.
