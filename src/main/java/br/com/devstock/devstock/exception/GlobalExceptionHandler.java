@@ -94,4 +94,17 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(resposta);
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> tratarArgumentoInvalido(
+            IllegalArgumentException ex){
+
+        Map<String, String> resposta = Map.of(
+                "erro", "Dados invalidos",
+                "mensagem", ex.getMessage()
+        );
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(resposta);
+    }
 }

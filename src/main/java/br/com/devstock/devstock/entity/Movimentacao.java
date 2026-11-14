@@ -17,8 +17,8 @@ public class Movimentacao {
     @JoinColumn(name = "notebook_id", nullable = false)
     private Notebook notebook;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "onboarding_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "onboarding_id", nullable = true)
     private Onboarding onboarding;
 
     @Enumerated(EnumType.STRING)
