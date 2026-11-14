@@ -6,7 +6,7 @@ O projeto tem como objetivo aplicar conceitos de desenvolvimento backend em um c
 
 ## Objetivo do projeto
 
-Facilitar o controle de notebooks e equipamentos disponibilizados aos desenvolvedores, permitindo gerenciar o estoque de ativos, kits de equipamentos, processos de onboarding, entregas, devoluções e histórico de movimentações.
+Facilitar o controle de notebooks e equipamentos disponibilizados aos desenvolvedores, permitindo gerenciar o estoque de ativos, kits de equipamentos, processos de onboarding, entregas, devoluções, ocorrências e histórico de movimentações.
 
 ## Tecnologias utilizadas
 
@@ -26,14 +26,17 @@ Facilitar o controle de notebooks e equipamentos disponibilizados aos desenvolve
 
 - Listagem de notebooks cadastrados.
 - Consulta de notebook por identificador.
-- Cadastro, atualização e exclusão de notebooks.
+- Cadastro de notebooks.
+- Atualização de informações.
+- Exclusão de notebooks, respeitando as restrições de integridade do banco de dados.
 - Verificação de duplicidade do número de série.
-- Tratamento de conflitos de dados e restrições de integridade.
+- Tratamento de conflitos de dados.
 
 ### Gerenciamento de desenvolvedores
 
 - Cadastro de desenvolvedores.
-- Listagem e consulta por identificador.
+- Listagem de desenvolvedores.
+- Consulta por identificador.
 - Controle de informações cadastrais.
 - Restrição de duplicidade de e-mail e matrícula.
 
@@ -50,44 +53,46 @@ Facilitar o controle de notebooks e equipamentos disponibilizados aos desenvolve
 - Associação dos itens do kit ao processo de onboarding.
 - Identificação do notebook pelo número de série.
 - Verificação da disponibilidade do notebook antes de associá-lo ao onboarding.
-- Impedimento de criação de novo onboarding enquanto existir outro em andamento para o mesmo desenvolvedor.
+- Impedimento de criação de um novo onboarding enquanto existir outro em andamento para o mesmo desenvolvedor.
 - Preservação do histórico dos processos de onboarding.
-- Consulta de todos os onboardings e consulta por identificador.
+- Consulta de todos os onboardings cadastrados.
+- Consulta de onboarding por identificador.
 - Confirmação da entrega dos equipamentos.
 - Registro automático da data e do responsável pela entrega.
-- Atualização automática do notebook para `EM_USO` após a entrega.
+- Atualização automática do status do notebook para `EM_USO` após a entrega.
 - Confirmação da devolução dos equipamentos.
-- Registro da data e do responsável pela devolução.
-- Registro individual da situação dos itens devolvidos.
-- Atualização do notebook conforme sua condição:
-  - `BOM_ESTADO`: retorna para `DISPONIVEL`.
-  - `DANIFICADO`: passa para `MANUTENCAO`.
-  - `NAO_APRESENTADO`: permanece `EM_USO`.
-- Encerramento do onboarding após a confirmação da devolução.
-- Bloqueio de devolução duplicada.
+- Registro da situação individual dos itens devolvidos.
+- Atualização do status do notebook conforme sua condição física.
+- Encerramento do onboarding após a devolução.
 
 ### Histórico de movimentações
 
-A aplicação possui uma estrutura para registrar movimentações relacionadas aos notebooks.
+A aplicação possui uma estrutura para registrar e consultar movimentações relacionadas aos notebooks.
+
+Os tipos de movimentação definidos são:
 
 | Tipo | Descrição | Situação |
 |---|---|---|
 | `ENTREGA` | Registro da entrega do notebook ao desenvolvedor. | Implementado |
 | `DEVOLUCAO` | Registro da devolução física do notebook. | Implementado |
-| `OCORRENCIA` | Registro de ocorrências relacionadas ao equipamento. | Pendente |
+| `OCORRENCIA` | Registro de ocorrências relacionadas ao equipamento. | Implementado |
 
 As movimentações de entrega e devolução são registradas automaticamente durante os respectivos processos de onboarding.
+
+As ocorrências podem ser registradas em qualquer notebook, independentemente de existir um onboarding associado. O registro de uma ocorrência não altera automaticamente o status do equipamento.
 
 **Regra importante:** quando um notebook é marcado como `NAO_APRESENTADO`, o onboarding pode ser encerrado, mas o notebook permanece `EM_USO` e não recebe uma movimentação de devolução.
 
 Cada movimentação armazena:
 
 - Notebook relacionado.
-- Onboarding associado.
+- Onboarding associado, quando aplicável.
 - Tipo de movimentação.
 - Data e hora do evento.
 - Responsável pelo registro.
 - Observações.
+
+A API também disponibiliza consulta do histórico de movimentações por notebook, ordenado da mais recente para a mais antiga.
 
 ## Arquitetura
 
@@ -126,11 +131,11 @@ O modelo de dados contempla entidades relacionadas à gestão de ativos de TI:
 - Um onboarding está associado a um desenvolvedor e a um kit.
 - Um onboarding possui seus próprios itens, preservando as informações do processo.
 - Um item de onboarding pode estar associado a um notebook.
-- Uma movimentação está vinculada a um notebook e ao onboarding correspondente.
+- Uma movimentação está vinculada a um notebook e pode estar associada a um onboarding.
 
 ## Endpoints
 
-A API disponibiliza endpoints REST para gerenciamento de notebooks, desenvolvedores e processos de onboarding.
+A API disponibiliza endpoints REST para gerenciamento de notebooks, desenvolvedores, processos de onboarding e movimentações dos equipamentos.
 
 ### API de Notebooks
 
@@ -162,15 +167,24 @@ A API disponibiliza endpoints REST para gerenciamento de notebooks, desenvolvedo
 |---|---|---|---|
 | GET | `/api/onboardings` | Lista todos os onboardings | `200 OK` |
 | GET | `/api/onboardings/{id}` | Busca onboarding pelo ID | `200 OK` |
-| POST | `/api/onboardings` | Cria onboarding vinculando desenvolvedor e kit | `201 Created` |
+| POST | `/api/onboardings` | Cria um onboarding para um desenvolvedor utilizando um kit | `201 Created` |
 | PUT | `/api/onboardings/{id}/confirmar-entrega` | Confirma a entrega dos equipamentos | `200 OK` |
 | PUT | `/api/onboardings/{id}/confirmar-devolucao` | Confirma a devolução dos equipamentos | `200 OK` |
 
 O endpoint de criação retorna o recurso criado no corpo da resposta e informa sua localização no cabeçalho `Location`.
 
-### Exemplos de requisições
+### API de Movimentações
 
-#### Criar onboarding
+**Endpoint-base:** `/api/notebooks/{notebookId}`
+
+| Método | Endpoint | Descrição | Resposta de sucesso |
+|---|---|---|---|
+| POST | `/api/notebooks/{notebookId}/ocorrencias` | Registra uma ocorrência relacionada ao notebook | `201 Created` |
+| GET | `/api/notebooks/{notebookId}/movimentacoes` | Consulta o histórico de movimentações do notebook | `200 OK` |
+
+## Exemplos de requisições
+
+### Criar onboarding
 
 `POST /api/onboardings`
 
@@ -193,7 +207,7 @@ Exemplo de resposta:
 }
 ```
 
-#### Confirmar entrega
+### Confirmar entrega
 
 `PUT /api/onboardings/2/confirmar-entrega`
 
@@ -204,44 +218,97 @@ Exemplo de resposta:
 }
 ```
 
-A confirmação registra automaticamente uma movimentação `ENTREGA`, vinculada ao notebook e ao onboarding correspondente, e atualiza o status do notebook para `EM_USO`.
+Exemplo de resposta:
+
+```json
+{
+  "id": 2,
+  "status": "EM_ANDAMENTO",
+  "dataEntrega": "2026-11-10T17:54:01",
+  "responsavelEntrega": "Luciano Rodrigues"
+}
+```
+
+A confirmação da entrega também registra automaticamente uma movimentação do tipo `ENTREGA`, vinculada ao notebook e ao onboarding correspondente.
 
 Uma nova tentativa de confirmar a mesma entrega é impedida pela regra de negócio, retornando `409 Conflict`.
 
-#### Confirmar devolução
+### Confirmar devolução
 
-`PUT /api/onboardings/2/confirmar-devolucao`
+`PUT /api/onboardings/3/confirmar-devolucao`
+
+O processo de devolução registra o responsável, a data da operação e a situação individual dos equipamentos.
+
+As regras de atualização do notebook são:
+
+| Situação do item | Status resultante do notebook |
+|---|---|
+| `BOM_ESTADO` | `DISPONIVEL` |
+| `DANIFICADO` | `MANUTENCAO` |
+| `NAO_APRESENTADO` | Permanece `EM_USO` |
+
+A devolução física dos equipamentos também gera movimentações do tipo `DEVOLUCAO`. Para itens não apresentados, não é registrada movimentação de devolução.
+
+### Registrar ocorrência
+
+`POST /api/notebooks/13/ocorrencias`
 
 ```json
 {
   "responsavel": "Luciano Rodrigues",
-  "observacao": "Devolução dos equipamentos ao setor de TI.",
-  "itens": [
-    {
-      "onboardingItemId": 6,
-      "situacao": "BOM_ESTADO",
-      "observacao": "Notebook devolvido em perfeito estado."
-    },
-    {
-      "onboardingItemId": 7,
-      "situacao": "BOM_ESTADO",
-      "observacao": "Mouse devolvido em boas condições."
-    }
-  ]
+  "observacao": "Notebook apresentou falha na inicialização do sistema operacional."
 }
 ```
 
-Valores aceitos para a situação de devolução:
+Exemplo de resposta:
 
-- `BOM_ESTADO`
-- `DANIFICADO`
-- `NAO_APRESENTADO`
+```json
+{
+  "id": 8,
+  "notebookId": 13,
+  "tipo": "OCORRENCIA",
+  "dataHora": "2026-11-14T12:37:13.241615",
+  "responsavel": "Luciano Rodrigues",
+  "observacao": "Notebook apresentou falha na inicialização do sistema operacional."
+}
+```
 
-A requisição deve informar todos os itens associados ao onboarding, registrando individualmente a situação e as observações de cada um.
+O registro de ocorrência não exige vínculo com um onboarding e não altera automaticamente o status do notebook.
 
-A aplicação registra automaticamente uma movimentação `DEVOLUCAO` para notebooks fisicamente apresentados. No caso de item não apresentado, a situação fica registrada no onboarding, sem alterar o status `EM_USO` do notebook e sem gerar movimentação de devolução.
+O responsável e a descrição da ocorrência são obrigatórios.
 
-Uma nova tentativa de devolução de um onboarding encerrado é bloqueada, retornando `409 Conflict`.
+### Consultar histórico de movimentações
+
+`GET /api/notebooks/13/movimentacoes`
+
+Exemplo de resposta:
+
+```json
+[
+  {
+    "id": 8,
+    "notebookId": 13,
+    "onboardId": null,
+    "tipo": "OCORRENCIA",
+    "dataHora": "2026-11-14T12:37:13.241615",
+    "responsavel": "Luciano Rodrigues",
+    "observacao": "Notebook apresentou falha na inicialização do sistema operacional."
+  },
+  {
+    "id": 5,
+    "notebookId": 13,
+    "onboardId": 4,
+    "tipo": "ENTREGA",
+    "dataHora": "2026-11-12T15:38:07.151293",
+    "responsavel": "Luciano Rodrigues",
+    "observacao": "Entrega do kit de teste para validar devolução de notebook não apresentado."
+  }
+]
+```
+
+O histórico apresenta as movimentações em ordem decrescente de data e hora.
+
+Quando o notebook existe, mas ainda não possui movimentações, a API retorna uma lista vazia (`[]`). Para um notebook inexistente, retorna `404 Not Found`.
 
 ## Códigos de erro
 
@@ -316,15 +383,14 @@ A execução depende de o PostgreSQL estar acessível e de as variáveis de ambi
   - [x] Alterar notebook danificado para `MANUTENCAO`.
   - [x] Registrar item não apresentado sem alterar seu status `EM_USO`.
   - [x] Encerrar onboarding após a devolução.
-- [x] Registrar automaticamente a movimentação `DEVOLUCAO` para notebooks apresentados.
-- [x] Validar os cenários de devolução: bom estado, danificado e não apresentado.
-- [x] Validar bloqueio de devolução duplicada.
+  - [x] Finalizar validações e testes dos cenários de devolução.
+- [x] Registrar automaticamente a movimentação `DEVOLUCAO` e validar os cenários implementados.
 
 ### Próximas funcionalidades
 
-- [ ] Implementar registro de ocorrências.
-- [ ] Criar endpoint de histórico de movimentações por notebook.
-- [ ] Ampliar a documentação da API com exemplos de requisições.
+- [x] Implementar registro de ocorrências.
+- [x] Criar endpoint de histórico de movimentações por notebook.
+- [x] Ampliar a documentação da API com exemplos de requisições.
 - [ ] Revisar e ampliar o tratamento de erros.
 - [ ] Implementar testes automatizados.
 - [ ] Revisar validações dos DTOs.
