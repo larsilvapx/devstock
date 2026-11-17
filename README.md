@@ -2,7 +2,7 @@
 
 API REST desenvolvida com Java e Spring Boot para gerenciar ativos de TI e apoiar o processo de onboarding de desenvolvedores.
 
-O projeto tem como objetivo aplicar conceitos de desenvolvimento backend em um cenário próximo ao ambiente corporativo, incluindo persistência de dados, organização em camadas, regras de negócio, relacionamentos entre entidades e tratamento de erros.
+O projeto tem como objetivo aplicar conceitos de desenvolvimento backend em um cenário próximo ao ambiente corporativo, incluindo persistência de dados, organização em camadas, regras de negócio, relacionamentos entre entidades, tratamento de erros e testes automatizados.
 
 ## Objetivo do projeto
 
@@ -16,6 +16,9 @@ Facilitar o controle de notebooks e equipamentos disponibilizados aos desenvolve
 - Hibernate
 - PostgreSQL
 - Maven
+- JUnit 5
+- Mockito
+- MockMvc
 - Git e GitHub
 
 > Consulte o `pom.xml` para verificar as versões exatas das dependências utilizadas no projeto.
@@ -166,7 +169,7 @@ A API disponibiliza endpoints REST para gerenciamento de notebooks, desenvolvedo
 | Método | Endpoint | Descrição | Resposta de sucesso |
 |---|---|---|---|
 | GET | `/api/onboardings` | Lista todos os onboardings | `200 OK` |
-| GET | `/api/onboardings/{id}` | Busca onboarding pelo ID | `200 OK` |
+| GET | `/api/onboardings/{id}` | Busca onboarding por identificador | `200 OK` |
 | POST | `/api/onboardings` | Cria um onboarding para um desenvolvedor utilizando um kit | `201 Created` |
 | PUT | `/api/onboardings/{id}/confirmar-entrega` | Confirma a entrega dos equipamentos | `200 OK` |
 | PUT | `/api/onboardings/{id}/confirmar-devolucao` | Confirma a devolução dos equipamentos | `200 OK` |
@@ -310,102 +313,12 @@ O histórico apresenta as movimentações em ordem decrescente de data e hora.
 
 Quando o notebook existe, mas ainda não possui movimentações, a API retorna uma lista vazia (`[]`). Para um notebook inexistente, retorna `404 Not Found`.
 
-## Códigos de erro
+## Tratamento de erros
 
-A aplicação possui tratamento global de exceções para padronizar erros.
+A aplicação possui tratamento global de exceções para padronizar erros e respostas da API.
 
 | Código HTTP | Significado |
 |---|---|
 | `400 Bad Request` | Requisição malformada ou parâmetro inválido |
 | `404 Not Found` | Recurso não encontrado |
-| `409 Conflict` | Conflito de cadastro ou violação de regra de negócio |
-| `500 Internal Server Error` | Erro inesperado no servidor |
-
-A ocorrência de cada erro depende das regras de negócio, das exceções lançadas e das restrições do banco de dados.
-
-## Configuração do ambiente
-
-### Pré-requisitos
-
-- JDK compatível com a versão configurada no projeto.
-- PostgreSQL.
-- Git.
-
-O Maven Wrapper está incluído no repositório para facilitar a execução dos comandos Maven.
-
-### Configuração do banco de dados
-
-Crie o banco de dados `devstock` no PostgreSQL e configure as variáveis de ambiente utilizadas pela aplicação:
-
-- `DB_URL`: endereço de conexão com o banco.
-- `DB_USERNAME`: usuário do banco.
-- `DB_PASSWORD`: senha do banco.
-
-A aplicação utiliza o Hibernate para validar o mapeamento das entidades em relação à estrutura existente no banco de dados.
-
-**Importante:** a configuração atual utiliza `ddl-auto=validate`. Portanto, é necessário que as tabelas e colunas esperadas já existam e sejam compatíveis com as entidades Java.
-
-Nunca publique senhas ou credenciais reais no repositório.
-
-### Executando a aplicação no Windows
-
-No terminal, acesse a pasta raiz do projeto e execute:
-
-```powershell
-.\mvnw.cmd clean compile
-```
-
-Se a compilação terminar com sucesso, inicie a aplicação:
-
-```powershell
-.\mvnw.cmd spring-boot:run
-```
-
-A execução depende de o PostgreSQL estar acessível e de as variáveis de ambiente estarem configuradas corretamente.
-
-## Checklist de evolução do projeto
-
-### Gestão de notebooks
-
-- [x] Implementar CRUD de notebooks.
-- [x] Implementar validações de cadastro e tratamento de erros.
-
-### Processo de onboarding
-
-- [x] Implementar criação de onboarding.
-- [x] Validar disponibilidade dos equipamentos antes da entrega.
-- [x] Implementar confirmação de entrega dos equipamentos.
-- [x] Registrar automaticamente a movimentação `ENTREGA`.
-- [x] Implementar processo de devolução dos equipamentos.
-  - [x] Registrar responsável e data da devolução.
-  - [x] Registrar a situação individual dos itens.
-  - [x] Retornar notebook em bom estado para `DISPONIVEL`.
-  - [x] Alterar notebook danificado para `MANUTENCAO`.
-  - [x] Registrar item não apresentado sem alterar seu status `EM_USO`.
-  - [x] Encerrar onboarding após a devolução.
-  - [x] Finalizar validações e testes dos cenários de devolução.
-- [x] Registrar automaticamente a movimentação `DEVOLUCAO` e validar os cenários implementados.
-
-### Próximas funcionalidades
-
-- [x] Implementar registro de ocorrências.
-- [x] Criar endpoint de histórico de movimentações por notebook.
-- [x] Ampliar a documentação da API com exemplos de requisições.
-- [ ] Revisar e ampliar o tratamento de erros.
-- [ ] Implementar testes automatizados.
-- [ ] Revisar validações dos DTOs.
-- [ ] Configurar documentação OpenAPI/Swagger.
-- [ ] Preparar ambiente com Docker.
-
-## Status
-
-**Em desenvolvimento.**
-
-O DevStock é um projeto prático de aprendizado e portfólio, com evolução incremental das funcionalidades e aplicação de conceitos de desenvolvimento backend com Java e Spring Boot.
-
-## Autor
-
-Desenvolvido por Luciano Rodrigues.
-
-- GitHub: [larsilvapx](https://github.com/larsilvapx)
-- Repositório: [DevStock](https://github.com/larsilvapx/devstock)
+|
