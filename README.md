@@ -321,4 +321,130 @@ A aplicação possui tratamento global de exceções para padronizar erros e res
 |---|---|
 | `400 Bad Request` | Requisição malformada ou parâmetro inválido |
 | `404 Not Found` | Recurso não encontrado |
-|
+| `409 Conflict` | Conflito de cadastro ou violação de regra de negócio |
+| `500 Internal Server Error` | Erro inesperado no servidor |
+
+O tratamento global contempla exceções de recursos não encontrados, conflitos de cadastro, violações de integridade, erros de conversão de parâmetros, validações e erros inesperados.
+
+As respostas de erro seguem uma estrutura padronizada com os campos `erro` e `mensagem`.
+
+## Testes automatizados
+
+O projeto possui testes automatizados utilizando JUnit 5, Mockito e MockMvc.
+
+A suíte atual contempla **21 testes automatizados**, distribuídos da seguinte forma:
+
+| Classe de teste | Quantidade | Cobertura |
+|---|---:|---|
+| `NotebookServiceTest` | 9 | Regras de negócio do serviço de notebooks |
+| `NotebookControllerTest` | 6 | Endpoints HTTP do controller de notebooks |
+| `GlobalExceptionHandlerTest` | 6 | Tratamento global de exceções |
+| **Total** | **21** | |
+
+Os testes de serviço utilizam mocks para isolar as regras de negócio. Os testes do controller utilizam MockMvc para simular requisições HTTP sem iniciar um servidor externo. Os testes do tratamento de erros verificam as respostas produzidas pelo handler.
+
+**Importante:** a suíte atual não depende de uma conexão com PostgreSQL. Os testes não substituem testes de integração com o banco de dados, que poderão ser adicionados em uma etapa futura.
+
+### Executando os testes
+
+Na pasta raiz do projeto, execute:
+
+```powershell
+.\mvnw.cmd clean test
+```
+
+Para uma execução bem-sucedida, o resultado esperado é:
+
+```text
+Tests run: 21, Failures: 0, Errors: 0, Skipped: 0
+
+BUILD SUCCESS
+```
+
+## Configuração do ambiente
+
+### Pré-requisitos
+
+- JDK compatível com a versão configurada no projeto.
+- PostgreSQL para execução da aplicação.
+- Git.
+
+O Maven Wrapper está incluído no repositório para facilitar a execução dos comandos Maven.
+
+### Configuração do banco de dados
+
+Crie o banco de dados `devstock` no PostgreSQL e configure as variáveis de ambiente utilizadas pela aplicação:
+
+- `DB_URL`: endereço de conexão com o banco.
+- `DB_USERNAME`: usuário do banco.
+- `DB_PASSWORD`: senha do banco.
+
+A aplicação utiliza o Hibernate para validar o mapeamento das entidades em relação à estrutura existente no banco de dados.
+
+**Importante:** a configuração atual utiliza `ddl-auto=validate`. Portanto, é necessário que as tabelas e colunas esperadas já existam e sejam compatíveis com as entidades Java.
+
+Nunca publique senhas ou credenciais reais no repositório.
+
+### Executando a aplicação no Windows
+
+No terminal, acesse a pasta raiz do projeto e execute:
+
+```powershell
+.\mvnw.cmd clean compile
+```
+
+Se a compilação terminar com sucesso, inicie a aplicação:
+
+```powershell
+.\mvnw.cmd spring-boot:run
+```
+
+A execução depende de o PostgreSQL estar acessível e de as variáveis de ambiente estarem configuradas corretamente.
+
+## Checklist de evolução do projeto
+
+### Gestão de notebooks
+
+- [x] Implementar CRUD de notebooks.
+- [x] Implementar validações de cadastro e tratamento de erros.
+
+### Processo de onboarding
+
+- [x] Implementar criação de onboarding.
+- [x] Validar disponibilidade dos equipamentos antes da entrega.
+- [x] Implementar confirmação de entrega dos equipamentos.
+- [x] Registrar automaticamente a movimentação `ENTREGA`.
+- [x] Implementar processo de devolução dos equipamentos.
+    - [x] Registrar responsável e data da devolução.
+    - [x] Registrar a situação individual dos itens.
+    - [x] Retornar notebook em bom estado para `DISPONIVEL`.
+    - [x] Alterar notebook danificado para `MANUTENCAO`.
+    - [x] Registrar item não apresentado sem alterar seu status `EM_USO`.
+    - [x] Encerrar onboarding após a devolução.
+    - [x] Finalizar validações e testes dos cenários de devolução.
+- [x] Registrar automaticamente a movimentação `DEVOLUCAO` e validar os cenários implementados.
+
+### Próximas funcionalidades
+
+- [x] Implementar registro de ocorrências.
+- [x] Criar endpoint de histórico de movimentações por notebook.
+- [x] Ampliar a documentação da API com exemplos de requisições.
+- [x] Revisar e ampliar o tratamento de erros.
+- [x] Implementar testes automatizados (21 testes, sem dependência do PostgreSQL).
+- [ ] Revisar validações dos DTOs.
+- [ ] Configurar documentação OpenAPI/Swagger.
+- [ ] Preparar ambiente com Docker.
+- [ ] Implementar testes de integração com PostgreSQL.
+
+## Status
+
+**Em desenvolvimento.**
+
+O DevStock é um projeto prático de aprendizado e portfólio, com evolução incremental das funcionalidades e aplicação de conceitos de desenvolvimento backend com Java e Spring Boot.
+
+## Autor
+
+Desenvolvido por Luciano Rodrigues.
+
+- GitHub: [larsilvapx](https://github.com/larsilvapx)
+- Repositório: [DevStock](https://github.com/larsilvapx/devstock)
