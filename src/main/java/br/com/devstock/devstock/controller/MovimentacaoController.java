@@ -5,6 +5,7 @@ import br.com.devstock.devstock.dto.MovimentacaoResponse;
 import br.com.devstock.devstock.dto.RegistrarOcorrenciaRequest;
 import br.com.devstock.devstock.dto.RegistrarOcorrenciaResponse;
 import br.com.devstock.devstock.service.MovimentacaoService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +26,7 @@ public class MovimentacaoController {
     @PostMapping("/ocorrencias")
     public ResponseEntity<RegistrarOcorrenciaResponse> registrarOcorrencia(
             @PathVariable Long notebookId,
-            @RequestBody RegistrarOcorrenciaRequest request) {
+          @Valid @RequestBody RegistrarOcorrenciaRequest request) {
 
         RegistrarOcorrenciaResponse resposta =
                 movimentacaoService.registrarOcorrencia(

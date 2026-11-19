@@ -6,6 +6,7 @@ import br.com.devstock.devstock.entity.Onboarding;
 import br.com.devstock.devstock.service.OnboardService;
 
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -25,7 +26,7 @@ public class OnboardController {
 
     @PostMapping
     public ResponseEntity<OnboardingResponse> criar(
-            @RequestBody CriarOnboardingRequest request
+           @Valid @RequestBody CriarOnboardingRequest request
     ) {
 
         Onboarding onboarding = onboardService.criarOnboarding(
@@ -55,7 +56,7 @@ public class OnboardController {
     @PutMapping("/{id}/confirmar-entrega")
     public ResponseEntity<ConfirmarEntregaResponse> confirmarEntrega(
             @PathVariable Long id,
-            @RequestBody ConfirmarEntregaRequest request
+           @Valid @RequestBody ConfirmarEntregaRequest request
     ) {
 
         Onboarding onboarding = onboardService.confirmarEntrega(
@@ -77,7 +78,7 @@ public class OnboardController {
     @PutMapping("/{id}/confirmar-devolucao")
     public ResponseEntity<ConfirmarDevolucaoResponse> confirmarDevolucao(
             @PathVariable Long id,
-            @RequestBody ConfirmarDevolucaoRequest request
+          @Valid @RequestBody ConfirmarDevolucaoRequest request
     ){
         Onboarding onboarding = onboardService.confirmarDevolucao(
                 id,

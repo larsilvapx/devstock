@@ -16,6 +16,7 @@ Facilitar o controle de notebooks e equipamentos disponibilizados aos desenvolve
 - Hibernate
 - PostgreSQL
 - Maven
+- Jakarta Bean Validation
 - JUnit 5
 - Mockito
 - MockMvc
@@ -97,6 +98,33 @@ Cada movimentação armazena:
 
 A API também disponibiliza consulta do histórico de movimentações por notebook, ordenado da mais recente para a mais antiga.
 
+## Validações dos DTOs
+
+A aplicação utiliza Jakarta Bean Validation para validar os dados recebidos nos endpoints de criação de onboarding, confirmação de entrega, confirmação de devolução e registro de ocorrências.
+
+As validações são executadas nos controllers por meio da anotação `@Valid`, impedindo que requisições inválidas avancem para a camada de serviço.
+
+### Regras implementadas
+
+| DTO | Campo | Validação |
+|---|---|---|
+| `CriarOnboardingRequest` | `desenvolvedorId` | Obrigatório e positivo |
+| `CriarOnboardingRequest` | `kitId` | Obrigatório e positivo |
+| `ConfirmarEntregaRequest` | `responsavel` | Obrigatório, não pode estar em branco e máximo de 150 caracteres |
+| `ConfirmarEntregaRequest` | `observacao` | Opcional, máximo de 500 caracteres |
+| `ConfirmarDevolucaoRequest` | `responsavel` | Obrigatório, não pode estar em branco e máximo de 150 caracteres |
+| `ConfirmarDevolucaoRequest` | `observacao` | Opcional, máximo de 500 caracteres |
+| `ConfirmarDevolucaoRequest` | `itens` | Lista obrigatória e não vazia |
+| `DevolucaoItemRequest` | `onboardingItemId` | Obrigatório e positivo |
+| `DevolucaoItemRequest` | `situacao` | Obrigatória |
+| `DevolucaoItemRequest` | `observacao` | Opcional, máximo de 500 caracteres |
+| `RegistrarOcorrenciaRequest` | `responsavel` | Obrigatório, não pode estar em branco e máximo de 150 caracteres |
+| `RegistrarOcorrenciaRequest` | `observacao` | Obrigatória, não pode estar em branco e máximo de 500 caracteres |
+
+Os itens da lista de devolução também são validados individualmente por meio da validação em cascata com `@Valid`.
+
+Quando os dados recebidos não atendem às regras definidas, a API retorna `400 Bad Request`, com uma resposta padronizada pelo tratamento global de exceções.
+
 ## Arquitetura
 
 A aplicação utiliza uma organização em camadas para separar as responsabilidades:
@@ -107,7 +135,7 @@ A aplicação utiliza uma organização em camadas para separar as responsabilid
 | Service | Centralizar as regras de negócio. |
 | Repository | Realizar operações de persistência por meio do Spring Data JPA. |
 | Entity | Representar as entidades persistidas no banco de dados. |
-| DTO | Organizar os dados de entrada e saída da API. |
+| DTO | Organizar e validar os dados de entrada e saída da API. |
 | Exception | Organizar exceções específicas e o tratamento de erros. |
 | Enum | Padronizar valores utilizados nas regras de negócio. |
 
@@ -319,12 +347,12 @@ A aplicação possui tratamento global de exceções para padronizar erros e res
 
 | Código HTTP | Significado |
 |---|---|
-| `400 Bad Request` | Requisição malformada ou parâmetro inválido |
+| `400 Bad Request` | Requisição malformada, validação ou parâmetro inválido |
 | `404 Not Found` | Recurso não encontrado |
 | `409 Conflict` | Conflito de cadastro ou violação de regra de negócio |
 | `500 Internal Server Error` | Erro inesperado no servidor |
 
-O tratamento global contempla exceções de recursos não encontrados, conflitos de cadastro, violações de integridade, erros de conversão de parâmetros, validações e erros inesperados.
+O tratamento global contempla exceções de recursos não encontrados, conflitos de cadastro, violações de integridade, erros de conversão de parâmetros, falhas de validação e erros inesperados.
 
 As respostas de erro seguem uma estrutura padronizada com os campos `erro` e `mensagem`.
 
@@ -332,16 +360,30 @@ As respostas de erro seguem uma estrutura padronizada com os campos `erro` e `me
 
 O projeto possui testes automatizados utilizando JUnit 5, Mockito e MockMvc.
 
-A suíte atual contempla **21 testes automatizados**, distribuídos da seguinte forma:
+A suíte atual contempla **26 testes automatizados**, distribuídos da seguinte forma:
 
 | Classe de teste | Quantidade | Cobertura |
 |---|---:|---|
 | `NotebookServiceTest` | 9 | Regras de negócio do serviço de notebooks |
 | `NotebookControllerTest` | 6 | Endpoints HTTP do controller de notebooks |
 | `GlobalExceptionHandlerTest` | 6 | Tratamento global de exceções |
-| **Total** | **21** | |
+| `OnboardControllerTest` | 3 | Validações das requisições de onboarding, entrega e devolução |
+| `MovimentacaoControllerTest` | 2 | Validações das requisições de registro de ocorrências |
+| **Total** | **26** | |
 
-Os testes de serviço utilizam mocks para isolar as regras de negócio. Os testes do controller utilizam MockMvc para simular requisições HTTP sem iniciar um servidor externo. Os testes do tratamento de erros verificam as respostas produzidas pelo handler.
+Os testes de serviço utilizam mocks para isolar as regras de negócio.
+
+Os testes dos controllers utilizam MockMvc para simular requisições HTTP sem iniciar um servidor externo. Também verificam se requisições inválidas são rejeitadas antes de chegar à camada de serviço.
+
+Os testes do tratamento de erros verificam as respostas produzidas pelo handler global.
+
+**Resultado da última execução da suíte:**
+
+- 26 testes executados.
+- 0 falhas.
+- 0 erros.
+- 0 testes ignorados.
+- `BUILD SUCCESS`.
 
 **Importante:** a suíte atual não depende de uma conexão com PostgreSQL. Os testes não substituem testes de integração com o banco de dados, que poderão ser adicionados em uma etapa futura.
 
@@ -356,7 +398,7 @@ Na pasta raiz do projeto, execute:
 Para uma execução bem-sucedida, o resultado esperado é:
 
 ```text
-Tests run: 21, Failures: 0, Errors: 0, Skipped: 0
+Tests run: 26, Failures: 0, Errors: 0, Skipped: 0
 
 BUILD SUCCESS
 ```
@@ -415,13 +457,13 @@ A execução depende de o PostgreSQL estar acessível e de as variáveis de ambi
 - [x] Implementar confirmação de entrega dos equipamentos.
 - [x] Registrar automaticamente a movimentação `ENTREGA`.
 - [x] Implementar processo de devolução dos equipamentos.
-    - [x] Registrar responsável e data da devolução.
-    - [x] Registrar a situação individual dos itens.
-    - [x] Retornar notebook em bom estado para `DISPONIVEL`.
-    - [x] Alterar notebook danificado para `MANUTENCAO`.
-    - [x] Registrar item não apresentado sem alterar seu status `EM_USO`.
-    - [x] Encerrar onboarding após a devolução.
-    - [x] Finalizar validações e testes dos cenários de devolução.
+  - [x] Registrar responsável e data da devolução.
+  - [x] Registrar a situação individual dos itens.
+  - [x] Retornar notebook em bom estado para `DISPONIVEL`.
+  - [x] Alterar notebook danificado para `MANUTENCAO`.
+  - [x] Registrar item não apresentado sem alterar seu status `EM_USO`.
+  - [x] Encerrar onboarding após a devolução.
+  - [x] Finalizar validações e testes dos cenários de devolução.
 - [x] Registrar automaticamente a movimentação `DEVOLUCAO` e validar os cenários implementados.
 
 ### Próximas funcionalidades
@@ -430,8 +472,8 @@ A execução depende de o PostgreSQL estar acessível e de as variáveis de ambi
 - [x] Criar endpoint de histórico de movimentações por notebook.
 - [x] Ampliar a documentação da API com exemplos de requisições.
 - [x] Revisar e ampliar o tratamento de erros.
-- [x] Implementar testes automatizados (21 testes, sem dependência do PostgreSQL).
-- [ ] Revisar validações dos DTOs.
+- [x] Implementar testes automatizados (26 testes, sem dependência do PostgreSQL).
+- [x] Revisar validações dos DTOs e aplicar `@Valid` nos endpoints correspondentes.
 - [ ] Configurar documentação OpenAPI/Swagger.
 - [ ] Preparar ambiente com Docker.
 - [ ] Implementar testes de integração com PostgreSQL.
