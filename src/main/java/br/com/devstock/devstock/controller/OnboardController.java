@@ -1,5 +1,9 @@
-
 package br.com.devstock.devstock.controller;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import br.com.devstock.devstock.dto.*;
 import br.com.devstock.devstock.entity.Onboarding;
@@ -14,6 +18,10 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.util.List;
 
+@Tag(
+        name = "Onboardings",
+        description = "Gerenciamento de onboardings, entregas e devoluções de equipamentos"
+)
 @RestController
 @RequestMapping("/api/onboardings")
 public class OnboardController {
@@ -24,9 +32,20 @@ public class OnboardController {
         this.onboardService = onboardService;
     }
 
+    @Operation(
+            summary = "Criar onboarding",
+            description = "Cria um onboarding para um desenvolvedor utilizando um kit de equipamentos."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Onboarding criado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+            @ApiResponse(responseCode = "404", description = "Desenvolvedor ou kit não encontrado"),
+            @ApiResponse(responseCode = "409", description = "Conflito na criação do onboarding"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
     @PostMapping
     public ResponseEntity<OnboardingResponse> criar(
-           @Valid @RequestBody CriarOnboardingRequest request
+            @Valid @RequestBody CriarOnboardingRequest request
     ) {
 
         Onboarding onboarding = onboardService.criarOnboarding(
@@ -53,10 +72,21 @@ public class OnboardController {
                 .body(response);
     }
 
+    @Operation(
+            summary = "Confirmar entrega de equipamentos",
+            description = "Confirma a entrega dos equipamentos do onboarding e registra a movimentação dos notebooks."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Entrega confirmada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos ou estado incompatível"),
+            @ApiResponse(responseCode = "404", description = "Onboarding não encontrado"),
+            @ApiResponse(responseCode = "409", description = "Conflito na confirmação da entrega"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
     @PutMapping("/{id}/confirmar-entrega")
     public ResponseEntity<ConfirmarEntregaResponse> confirmarEntrega(
             @PathVariable Long id,
-           @Valid @RequestBody ConfirmarEntregaRequest request
+            @Valid @RequestBody ConfirmarEntregaRequest request
     ) {
 
         Onboarding onboarding = onboardService.confirmarEntrega(
@@ -75,25 +105,46 @@ public class OnboardController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(
+            summary = "Confirmar devolução de equipamentos",
+            description = "Registra a devolução dos equipamentos e suas respectivas condições."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Devolução confirmada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+            @ApiResponse(responseCode = "404", description = "Onboarding ou item não encontrado"),
+            @ApiResponse(responseCode = "409", description = "Conflito na confirmação da devolução"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
     @PutMapping("/{id}/confirmar-devolucao")
     public ResponseEntity<ConfirmarDevolucaoResponse> confirmarDevolucao(
             @PathVariable Long id,
-          @Valid @RequestBody ConfirmarDevolucaoRequest request
-    ){
+            @Valid @RequestBody ConfirmarDevolucaoRequest request
+    ) {
+
         Onboarding onboarding = onboardService.confirmarDevolucao(
                 id,
                 request
         );
+
         ConfirmarDevolucaoResponse response = new ConfirmarDevolucaoResponse(
                 onboarding.getId(),
                 onboarding.getStatus(),
                 onboarding.getDataDevolucao(),
                 onboarding.getResponsavelDevolucao()
         );
+
         return ResponseEntity.ok(response);
     }
 
-
+    @Operation(
+            summary = "Listar onboardings",
+            description = "Retorna a lista de onboardings cadastrados."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
     @GetMapping
     public ResponseEntity<List<OnboardingResponse>> listar() {
 
@@ -112,6 +163,15 @@ public class OnboardController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(
+            summary = "Buscar onboarding por ID",
+            description = "Retorna os dados de um onboarding específico."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Onboarding encontrado"),
+            @ApiResponse(responseCode = "404", description = "Onboarding não encontrado"),
+            @ApiResponse(responseCode = "500", description = "Erro interno do servidor")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<OnboardingResponse> buscarPorId(
             @PathVariable Long id
@@ -129,9 +189,4 @@ public class OnboardController {
 
         return ResponseEntity.ok(response);
     }
-
-
-
-
-
 }

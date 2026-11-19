@@ -1,4 +1,4 @@
-# DevStock — API de Gestão de Ativos de TI
+﻿# DevStock — API de Gestão de Ativos de TI
 
 API REST desenvolvida com Java e Spring Boot para gerenciar ativos de TI e apoiar o processo de onboarding de desenvolvedores.
 
@@ -17,6 +17,8 @@ Facilitar o controle de notebooks e equipamentos disponibilizados aos desenvolve
 - PostgreSQL
 - Maven
 - Jakarta Bean Validation
+- Springdoc OpenAPI
+- Swagger UI
 - JUnit 5
 - Mockito
 - MockMvc
@@ -166,7 +168,7 @@ O modelo de dados contempla entidades relacionadas à gestão de ativos de TI:
 
 ## Endpoints
 
-A API disponibiliza endpoints REST para gerenciamento de notebooks, desenvolvedores, processos de onboarding e movimentações dos equipamentos.
+A API disponibiliza endpoints REST para gerenciamento de notebooks, desenvolvedores, kits, processos de onboarding e movimentações dos equipamentos.
 
 ### API de Notebooks
 
@@ -190,6 +192,17 @@ A API disponibiliza endpoints REST para gerenciamento de notebooks, desenvolvedo
 | GET | `/api/desenvolvedores/{id}` | Busca desenvolvedor pelo ID | `200 OK` |
 | POST | `/api/desenvolvedores` | Cadastra um desenvolvedor | `200 OK` |
 
+### API de Kits
+
+**Endpoint-base:** `/api/kits`
+
+| Método | Endpoint | Descrição | Resposta de sucesso |
+|---|---|---|---|
+| GET | `/api/kits` | Lista todos os kits | `200 OK` |
+| GET | `/api/kits/{id}` | Busca kit pelo ID | `200 OK` |
+| POST | `/api/kits` | Cadastra um kit | `201 Created` |
+| PUT | `/api/kits/{id}` | Atualiza um kit | `200 OK` |
+
 ### API de Onboarding
 
 **Endpoint-base:** `/api/onboardings`
@@ -212,6 +225,39 @@ O endpoint de criação retorna o recurso criado no corpo da resposta e informa 
 |---|---|---|---|
 | POST | `/api/notebooks/{notebookId}/ocorrencias` | Registra uma ocorrência relacionada ao notebook | `201 Created` |
 | GET | `/api/notebooks/{notebookId}/movimentacoes` | Consulta o histórico de movimentações do notebook | `200 OK` |
+
+## Documentação da API — OpenAPI / Swagger
+
+O projeto utiliza Springdoc OpenAPI para gerar automaticamente a documentação dos endpoints REST, seguindo a especificação OpenAPI.
+
+A documentação permite visualizar os recursos disponíveis, consultar os métodos HTTP, verificar os parâmetros e modelos de requisição e resposta, além de executar chamadas diretamente pela interface Swagger UI.
+
+### Acessos
+
+| Recurso | Endereço |
+|---|---|
+| Swagger UI | `http://localhost:8080/swagger-ui/index.html` |
+| Especificação OpenAPI em JSON | `http://localhost:8080/v3/api-docs` |
+
+### Recursos documentados
+
+A documentação contempla os seguintes grupos de operações:
+
+- Notebooks: cadastro, consulta, atualização e exclusão.
+- Desenvolvedores: cadastro e consultas.
+- Kits: cadastro, consulta e atualização.
+- Onboardings: criação, consulta, confirmação de entrega e devolução.
+- Movimentações: registro de ocorrências e consulta do histórico de notebooks.
+
+Os endpoints possuem descrições e respostas HTTP documentadas, incluindo os principais cenários de sucesso, validação, recurso não encontrado, conflito e erro interno do servidor.
+
+A interface Swagger UI fica disponível quando a aplicação está em execução e o banco de dados está acessível.
+
+### Visualização do Swagger UI
+
+A imagem abaixo apresenta a interface de documentação da API DevStock, com a identificação da versão e os endpoints de onboarding.
+
+![Swagger UI da API DevStock](docs/imagens/swagger-ui.png)
 
 ## Exemplos de requisições
 
@@ -474,7 +520,7 @@ A execução depende de o PostgreSQL estar acessível e de as variáveis de ambi
 - [x] Revisar e ampliar o tratamento de erros.
 - [x] Implementar testes automatizados (26 testes, sem dependência do PostgreSQL).
 - [x] Revisar validações dos DTOs e aplicar `@Valid` nos endpoints correspondentes.
-- [ ] Configurar documentação OpenAPI/Swagger.
+- [x] Configurar documentação OpenAPI/Swagger.
 - [ ] Preparar ambiente com Docker.
 - [ ] Implementar testes de integração com PostgreSQL.
 
@@ -490,3 +536,4 @@ Desenvolvido por Luciano Rodrigues.
 
 - GitHub: [larsilvapx](https://github.com/larsilvapx)
 - Repositório: [DevStock](https://github.com/larsilvapx/devstock)
+
